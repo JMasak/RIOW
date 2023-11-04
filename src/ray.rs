@@ -18,12 +18,12 @@ impl Ray
         }
     }
 
-    pub fn with_point_direction(orig: Vec3, dir: Vec3) -> Self
+    pub fn with_point_direction(orig: &Vec3, dir: &Vec3) -> Self
     {
         Ray
         {
-            origin: orig,
-            direction: dir
+            origin: orig.clone(),
+            direction: dir.clone()
         }
     }
 

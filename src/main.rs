@@ -18,27 +18,30 @@ const IMAGE_HEIGHT: usize = match (IMAGE_WIDTH as f32 / ASPECT_RATION) as usize 
 const VIEWPORT_HEIGHT: f32 = 2.0;
 const VIEWPORT_WIDTH: f32 = VIEWPORT_HEIGHT * (IMAGE_WIDTH as f32 / IMAGE_HEIGHT as f32);
 const FOCAL_LENGTH: f32 = 1.0;
-const CAMERA_CENTER: Vec3 = Vec3::with_position(0.0, 0.0, 0.0);
-
-// Calculate the vectors across the horizontal and down the vertical viewport edges.
-const VIEWPORT_U: Vec3 = Vec3::with_position(VIEWPORT_WIDTH, 0.0, 0.0);
-const VIEWPORT_V: Vec3 = Vec3::with_position(0.0, -VIEWPORT_HEIGHT, 0.0);
-
-// Calculate the horizontal and vertical delta vectors from pixel to pixel.
-const PIXEL_DELTA_U: Vec3 = &VIEWPORT_U / IMAGE_WIDTH as f32;
-const PIXEL_DELTA_V: Vec3 = &VIEWPORT_V / IMAGE_HEIGHT as f32;
-
-// Calculate the location of the upper left pixel.
-const VIEWPORT_UPPER_LEFT: Vec3 = CAMERA_CENTER - Vec3::with_position(0.0, 0.0, FOCAL_LENGTH) - &VIEWPORT_U/2.0 - &VIEWPORT_V/2.0;
 
 
-fn ray_color(_r: &Ray) -> Vec3
+
+fn ray_color(r: &Ray) -> Vec3
 {
-    Vec3::new()
+    let unit_direction = Vec3::unit_vector(&r.direction());
+    let a = 0.5*(unit_direction.y() + 1.0);
+    Vec3::with_color(1.0, 1.0, 1.0) * (1.0 - a) + a * Vec3::with_color(0.5, 0.7, 1.0)
 }
 
 fn main() {
-    let pixel00_loc = &VIEWPORT_UPPER_LEFT + &(&PIXEL_DELTA_U + PIXEL_DELTA_V) * 0.5;
+    let camera_center = Vec3::with_position(0.0, 0.0, 0.0);
+
+    // Calculate the vectors across the horizontal and down the vertical viewport edges.
+    let viewport_u = Vec3::with_position(VIEWPORT_WIDTH, 0.0, 0.0);
+    let viewport_v = Vec3::with_position(0.0, -VIEWPORT_HEIGHT, 0.0);
+
+    // Calculate the horizontal and vertical delta vectors from pixel to pixel.
+    let pixel_delta_u = &viewport_u / IMAGE_WIDTH as f32;
+    let pixel_delta_v = &viewport_v / IMAGE_HEIGHT as f32;
+
+    // Calculate the location of the upper left pixel.
+    let viewport_upper_left = &camera_center - Vec3::with_position(0.0, 0.0, FOCAL_LENGTH) - &viewport_u/2.0 - &viewport_v/2.0;
+    let pixel00_loc = &viewport_upper_left + &(&pixel_delta_u + &pixel_delta_v) * 0.5;
     let mut f = File::create("test.ppm").unwrap();
     write!(f, "P3\n{} {}\n255\n", IMAGE_WIDTH, IMAGE_HEIGHT).unwrap();
 
@@ -47,11 +50,11 @@ fn main() {
         print!("\rScanlines remaining: {}     ", (IMAGE_HEIGHT - j));
         for i in 0..IMAGE_WIDTH
         {
-            let red: f32 = i as f32 / (IMAGE_WIDTH - 1) as f32;
-            let green: f32 = j as f32 / (IMAGE_HEIGHT - 1) as f32;
-            let blue: f32 = 0.0;
+            let pixel_center = &pixel00_loc + (i as f32 * &pixel_delta_u) + (j as f32 * &pixel_delta_v);
+            let ray_direction = pixel_center - &camera_center;
+            let r = Ray::with_point_direction(&camera_center, &ray_direction);
 
-            let c = Vec3::with_color(red, green, blue);
+            let c = ray_color(&r);
             write!(f, "{}\n", c).unwrap();
         }
     }
