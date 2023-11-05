@@ -2,6 +2,7 @@ mod vec3;
 mod ray;
 
 use std::{fs::File, io::Write};
+use std::time::Instant;
 
 use crate::vec3::Vec3;
 use crate::ray::Ray;
@@ -65,6 +66,7 @@ fn raytrace() {
     let pixel00_loc = &viewport_upper_left + &(&pixel_delta_u + &pixel_delta_v) * 0.5;
     let mut f = File::create("test.ppm").unwrap();
     write!(f, "P3\n{} {}\n255\n", IMAGE_WIDTH, IMAGE_HEIGHT).unwrap();
+    let start_time = Instant::now();
 
     for j in 0..IMAGE_HEIGHT
     {
@@ -79,7 +81,8 @@ fn raytrace() {
             write!(f, "{}\n", c).unwrap();
         }
     }
-    print!("\rDone!                    \n");
+    let elapsed_time = start_time.elapsed();
+    print!("\rDone! Raytracing took: {:?}\n", elapsed_time);
 }
 
 fn main() {
