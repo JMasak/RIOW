@@ -41,15 +41,15 @@ fn ray_color(r: &Ray) -> Vec3
     let t = hit_sphere(&Vec3::with_position(0.0, 0.0, -1.0), 0.5, &r);
     if t > 0.0 
     {
-        let N = Vec3::unit_vector(&(r.at(t) - Vec3::with_position(0.0,0.0,-1.0)));
-        return 0.5*Vec3::with_color(N.x()+1.0, N.y()+1.0, N.z()+1.0);
+        let n: Vec3 = Vec3::unit_vector(&(r.at(t) - Vec3::with_position(0.0,0.0,-1.0)));
+        return 0.5*Vec3::with_color(n.x()+1.0, n.y()+1.0, n.z()+1.0);
     }
     let unit_direction = Vec3::unit_vector(&r.direction());
     let a = 0.5*(unit_direction.y() + 1.0);
     Vec3::with_color(1.0, 1.0, 1.0) * (1.0 - a) + a * Vec3::with_color(0.5, 0.7, 1.0)
 }
 
-fn main() {
+fn raytrace() {
     let camera_center = Vec3::with_position(0.0, 0.0, 0.0);
 
     // Calculate the vectors across the horizontal and down the vertical viewport edges.
@@ -73,11 +73,15 @@ fn main() {
         {
             let pixel_center = &pixel00_loc + (i as f32 * &pixel_delta_u) + (j as f32 * &pixel_delta_v);
             let ray_direction = pixel_center - &camera_center;
-            let r = Ray::with_point_direction(&camera_center, &ray_direction);
+            let r = Ray::new(&camera_center, &ray_direction);
 
             let c = ray_color(&r);
             write!(f, "{}\n", c).unwrap();
         }
     }
     print!("\rDone!                    \n");
+}
+
+fn main() {
+    raytrace();
 }

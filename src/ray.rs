@@ -1,3 +1,4 @@
+
 use crate::vec3::Vec3;
 
 
@@ -7,18 +8,19 @@ pub struct Ray
     direction: Vec3
 }
 
-impl Ray
-{
-    pub fn new() -> Self
-    {
+impl Default for Ray {
+    fn default() -> Self {
         Ray
         {
             origin: Vec3::new(),
             direction: Vec3::new()
         }
     }
+}
 
-    pub fn with_point_direction(orig: &Vec3, dir: &Vec3) -> Self
+impl Ray
+{
+    pub fn new(orig: &Vec3, dir: &Vec3) -> Self
     {
         Ray
         {
