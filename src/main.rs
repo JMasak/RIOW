@@ -1,5 +1,7 @@
 mod vec3;
 mod ray;
+mod hitable;
+mod sphere;
 
 use std::{fs::File, io::Write};
 use std::time::Instant;
