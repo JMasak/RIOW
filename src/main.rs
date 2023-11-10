@@ -2,9 +2,12 @@ mod vec3;
 mod ray;
 mod hitable;
 mod sphere;
+mod interval;
 
 use std::{fs::File, io::Write};
 use std::time::Instant;
+
+use interval::Interval;
 
 use crate::sphere::Sphere;
 use crate::vec3::Vec3;
@@ -35,7 +38,7 @@ const FOCAL_LENGTH: f32 = 1.0;
 
 fn ray_color(r: &Ray, world: &HitableList) -> Vec3
 {
-    match world.hit(r, 0.0, INFINITY) {
+    match world.hit(r, Interval::with_min_max(0.0, INFINITY)) {
         Some(rec)=> {
             0.5 * (rec.normal + Vec3::with_color(1.0, 1.0, 1.0))
         },
