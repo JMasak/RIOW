@@ -1,5 +1,6 @@
 use crate::{Vec3, ray::Ray};
 
+#[derive(Clone)]
 pub struct HitRecord {
     pub p: Vec3,
     pub normal: Vec3,
@@ -21,4 +22,43 @@ impl HitRecord {
 
 pub trait Hitable {
     fn hit(&self, r: &Ray, ray_tmin: f32, ray_tmax: f32, rec: &mut HitRecord) -> bool;
+}
+
+pub struct HitableList {
+    objects: Vec<Box<dyn Hitable>>
+}
+
+impl HitableList {
+    pub fn new() -> Self
+    {
+        Self { objects: Vec::new() }
+    }
+
+    pub fn clear(&mut self) {
+        self.objects.clear();
+    }
+
+    pub fn add(&mut self, object: Box<dyn Hitable>) {
+        self.objects.push(object);
+    }
+
+    pub fn hit(&self, r: &Ray, ray_tmin: f32, ray_tmax: f32, rec: &mut HitRecord) -> bool {
+        let mut temp_rec = HitRecord{
+            p: Vec3::new(),
+            normal: Vec3::new(),
+            t: 0.0,
+            front_face: false,
+        };
+        let mut hit_anything = false;
+        let mut _closest_so_far = ray_tmax;
+
+        for object in &self.objects {
+            if object.hit(r, ray_tmin, ray_tmax, &mut temp_rec) {
+                hit_anything = true;
+                _closest_so_far = temp_rec.t;
+                *rec = temp_rec.clone();
+            }
+        }
+        return hit_anything;
+    }
 }

@@ -9,6 +9,15 @@ use std::time::Instant;
 use crate::vec3::Vec3;
 use crate::ray::Ray;
 
+// constants
+const INFINITY: f32 = f32::INFINITY;
+const PI: f32 = std::f32::consts::PI;
+
+//utility functions
+pub fn degrees_to_radians(degrees: f32) -> f32 {
+    degrees * PI / 180.0
+}
+
 //define Picture
 const ASPECT_RATION: f32 = 16.0 / 9.0;
 const IMAGE_WIDTH: usize = 800;
