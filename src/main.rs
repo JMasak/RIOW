@@ -6,8 +6,10 @@ mod sphere;
 use std::{fs::File, io::Write};
 use std::time::Instant;
 
+use crate::sphere::Sphere;
 use crate::vec3::Vec3;
 use crate::ray::Ray;
+use crate::hitable::HitableList;
 
 // constants
 const INFINITY: f32 = f32::INFINITY;
@@ -31,40 +33,27 @@ const VIEWPORT_HEIGHT: f32 = 2.0;
 const VIEWPORT_WIDTH: f32 = VIEWPORT_HEIGHT * (IMAGE_WIDTH as f32 / IMAGE_HEIGHT as f32);
 const FOCAL_LENGTH: f32 = 1.0;
 
-fn hit_sphere(center: &Vec3, radius: f32, r: &Ray) -> f32
+fn ray_color(r: &Ray, world: &HitableList) -> Vec3
 {
-    let oc = r.origin() - center;
-
-    let a = r.direction().length_squared();
-    let half_b = Vec3::dot(&oc, &r.direction());
-    let c = oc.length_squared() - radius*radius;
-    let discriminant = half_b*half_b - a*c;
-
-    if discriminant < 0.0
-    {
-        return -1.0
-    }
-    else 
-    {
-        return (-half_b - discriminant.sqrt() ) / a;
-    }
-}
-
-fn ray_color(r: &Ray) -> Vec3
-{
-    let t = hit_sphere(&Vec3::with_position(0.0, 0.0, -1.0), 0.5, &r);
-    if t > 0.0 
-    {
-        let n: Vec3 = Vec3::unit_vector(&(r.at(t) - Vec3::with_position(0.0,0.0,-1.0)));
-        return 0.5*Vec3::with_color(n.x()+1.0, n.y()+1.0, n.z()+1.0);
-    }
-    let unit_direction = Vec3::unit_vector(&r.direction());
-    let a = 0.5*(unit_direction.y() + 1.0);
-    Vec3::with_color(1.0, 1.0, 1.0) * (1.0 - a) + a * Vec3::with_color(0.5, 0.7, 1.0)
+    match world.hit(r, 0.0, INFINITY) {
+        Some(rec)=> {
+            0.5 * (rec.normal + Vec3::with_color(1.0, 1.0, 1.0))
+        },
+        None => {
+            let unit_direction = Vec3::unit_vector(&r.direction());
+            let a = 0.5*(unit_direction.y() + 1.0);
+            Vec3::with_color(1.0, 1.0, 1.0) * (1.0 - a) + a * Vec3::with_color(0.5, 0.7, 1.0)
+        }
+    } 
 }
 
 fn raytrace() {
     let camera_center = Vec3::with_position(0.0, 0.0, 0.0);
+
+    // world
+    let mut world = HitableList::new();
+    world.add(Box::new(Sphere::new(Vec3::with_position(0.0, -100.5, -1.0), 100.0)));
+    world.add(Box::new(Sphere::new(Vec3::with_position(0.0, 0.0, -1.0), 0.5)));
 
     // Calculate the vectors across the horizontal and down the vertical viewport edges.
     let viewport_u = Vec3::with_position(VIEWPORT_WIDTH, 0.0, 0.0);
@@ -90,7 +79,7 @@ fn raytrace() {
             let ray_direction = pixel_center - &camera_center;
             let r = Ray::new(&camera_center, &ray_direction);
 
-            let c = ray_color(&r);
+            let c = ray_color(&r, &world);
             write!(f, "{}\n", c).unwrap();
         }
     }

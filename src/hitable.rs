@@ -42,8 +42,8 @@ impl HitableList {
         self.objects.push(object);
     }
 
-    pub fn hit(&self, r: &Ray, ray_tmin: f32, ray_tmax: f32, rec: &mut HitRecord) -> bool {
-        let mut temp_rec = HitRecord{
+    pub fn hit(&self, r: &Ray, ray_tmin: f32, ray_tmax: f32) -> Option<HitRecord> {
+        let mut rec = HitRecord{
             p: Vec3::new(),
             normal: Vec3::new(),
             t: 0.0,
@@ -53,12 +53,14 @@ impl HitableList {
         let mut _closest_so_far = ray_tmax;
 
         for object in &self.objects {
-            if object.hit(r, ray_tmin, ray_tmax, &mut temp_rec) {
+            if object.hit(r, ray_tmin, ray_tmax, &mut rec) {
                 hit_anything = true;
-                _closest_so_far = temp_rec.t;
-                *rec = temp_rec.clone();
+                _closest_so_far = rec.t;
             }
         }
-        return hit_anything;
+        match hit_anything {
+            true => Some(rec),
+            false => None
+        }
     }
 }
