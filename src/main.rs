@@ -10,6 +10,7 @@ use camera::Camera;
 use crate::sphere::Sphere;
 use crate::vec3::Vec3;
 use crate::hitable::HitableList;
+use rand::prelude::*;
 
 // constants
 const PI: f32 = std::f32::consts::PI;
@@ -17,6 +18,15 @@ const PI: f32 = std::f32::consts::PI;
 //utility functions
 pub fn degrees_to_radians(degrees: f32) -> f32 {
     degrees * PI / 180.0
+}
+
+pub fn random() -> f32 {
+    // Returns a random real in [0,1).
+    rand::random()
+}
+
+pub fn random_with_min_max(min: f32, max: f32) -> f32{
+    min + (max-min) * random()
 }
 
 fn raytrace() {
@@ -27,6 +37,7 @@ fn raytrace() {
     let mut cam = Camera::new();
     cam.aspect_ratio = 16.0/9.0;
     cam.image_width = 720;
+    cam.samples_per_pixel = 20;
     cam.render(&world);
 }
 

@@ -1,6 +1,8 @@
 use std::ops;
 use std::fmt;
 
+use crate::interval::Interval;
+
 #[derive(Clone)]
 pub struct Vec3
 {
@@ -66,6 +68,15 @@ impl Vec3
     pub fn unit_vector(v: &Vec3) -> Vec3
     {
         v / v.length()
+    }
+
+    pub fn write_color(&self, samples_per_pixel: usize) -> String{
+        let intensity = Interval::with_min_max(0.0, 0.999);
+        let scale = 1.0 / samples_per_pixel as f32;
+        format!("{} {} {}", 
+            (256.0 * intensity.clamp(self.e[0] * scale)) as u8, 
+            (256.0 * intensity.clamp(self.e[1] * scale)) as u8, 
+            (256.0 * intensity.clamp(self.e[2] * scale)) as u8)
     }
 }
 

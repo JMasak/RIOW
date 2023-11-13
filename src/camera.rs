@@ -1,15 +1,16 @@
 use std::{time::Instant, fs::File, io::Write};
-use crate::{hitable::{HitableList}, ray::Ray, vec3::Vec3, interval::Interval};
+use crate::{hitable::{HitableList}, ray::Ray, vec3::Vec3, interval::Interval, random};
 
 
 pub struct Camera {
-    pub aspect_ratio: f32,      // Ratio of image width over height
-    pub image_width: usize,     // Rendered image width in pixel count
-    image_height: usize,        // Rendered image height
-    center: Vec3,               // Camera center
-    pixel00_loc: Vec3,          // Location of pixel 0, 0
-    pixel_delta_u: Vec3,        // Offset to pixel to the right
-    pixel_delta_v: Vec3         // Offset to pixel below
+    pub aspect_ratio: f32,          // Ratio of image width over height
+    pub image_width: usize,         // Rendered image width in pixel count
+    pub samples_per_pixel: usize,   // Count of random samples for each pixel
+    image_height: usize,            // Rendered image height
+    center: Vec3,                   // Camera center
+    pixel00_loc: Vec3,              // Location of pixel 0, 0
+    pixel_delta_u: Vec3,            // Offset to pixel to the right
+    pixel_delta_v: Vec3             // Offset to pixel below
 }
 
 impl Camera {
@@ -18,6 +19,7 @@ impl Camera {
             aspect_ratio: 1.0, 
             image_width: 100, 
             image_height: 100, 
+            samples_per_pixel: 10,
             center: Vec3::with_position(0.0, 0.0, 0.0), 
             pixel00_loc: Vec3::with_position(-0.09, 0.09, 1.0), 
             pixel_delta_u: Vec3::with_position(0.02, 0.0, 0.0) ,
@@ -35,12 +37,12 @@ impl Camera {
             print!("\rScanlines remaining: {}     ", (self.image_height - j));
             for i in 0..self.image_width
             {
-                let pixel_center = &self.pixel00_loc + (i as f32 * &self.pixel_delta_u) + (j as f32 * &self.pixel_delta_v);
-                let ray_direction = pixel_center - &self.center;
-                let r = Ray::new(&self.center, &ray_direction);
-
-                let c = self.ray_color(&r, &world);
-                write!(f, "{}\n", c).unwrap();
+                let mut c = Vec3::new();
+                for _ in 0..self.samples_per_pixel {
+                    let r = self.get_ray(i, j);
+                    c = c + self.ray_color(&r, &world);
+                }
+                write!(f, "{}\n", c.write_color(self.samples_per_pixel)).unwrap();
             }
         }
         let elapsed_time = start_time.elapsed();
@@ -83,5 +85,21 @@ impl Camera {
                 Vec3::with_color(1.0, 1.0, 1.0) * (1.0 - a) + a * Vec3::with_color(0.5, 0.7, 1.0)
             }
         } 
+    }
+
+    fn get_ray(&self, i: usize, j: usize) -> Ray {
+        // Get a randomly sampled camera ray for the pixel at location i,j.
+        let pixel_center = &self.pixel00_loc + (i as f32 * &self.pixel_delta_u) + (j as f32 * &self.pixel_delta_v);
+        let pixel_sample = pixel_center + self.pixel_sample_square();
+
+        let ray_direction = pixel_sample - &self.center;
+        Ray::new(&self.center, &ray_direction)
+    }
+
+    fn pixel_sample_square(&self) -> Vec3 {
+        // Returns a random point in the square surrounding a pixel at the origin.
+        let px = -0.5 + random();
+        let py = -0.5 + random();
+        (px * &self.pixel_delta_u) + (py * &self.pixel_delta_v)
     }
 }
