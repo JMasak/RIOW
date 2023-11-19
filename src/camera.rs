@@ -80,7 +80,7 @@ impl Camera {
         if depth <= 0 {
             return Vec3::with_color(0.0, 0.0, 0.0)
         }
-        match world.hit(r, Interval::with_min_max(0.0, std::f32::INFINITY)) {
+        match world.hit(r, Interval::with_min_max(0.001, std::f32::INFINITY)) {
             Some(rec)=> {
                 let direction = Vec3::random_on_hemisphere(&rec.normal);
                 0.5 * self.ray_color(&Ray::new(&rec.p, &direction), depth-1, world)
