@@ -106,9 +106,13 @@ impl Vec3
         let intensity = Interval::with_min_max(0.0, 0.999);
         let scale = 1.0 / samples_per_pixel as f32;
         format!("{} {} {}", 
-            (256.0 * intensity.clamp(self.e[0] * scale)) as u8, 
-            (256.0 * intensity.clamp(self.e[1] * scale)) as u8, 
-            (256.0 * intensity.clamp(self.e[2] * scale)) as u8)
+            (256.0 * intensity.clamp(Vec3::linear_to_gamma(self.e[0] * scale))) as u8, 
+            (256.0 * intensity.clamp(Vec3::linear_to_gamma(self.e[1] * scale))) as u8, 
+            (256.0 * intensity.clamp(Vec3::linear_to_gamma(self.e[2] * scale))) as u8)
+    }
+
+    pub fn linear_to_gamma(linear_component: f32) -> f32 {
+        linear_component.sqrt()
     }
 }
 
