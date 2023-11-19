@@ -82,7 +82,7 @@ impl Camera {
         }
         match world.hit(r, Interval::with_min_max(0.001, std::f32::INFINITY)) {
             Some(rec)=> {
-                let direction = Vec3::random_on_hemisphere(&rec.normal);
+                let direction = rec.normal + Vec3::random_unit_vector();
                 0.5 * self.ray_color(&Ray::new(&rec.p, &direction), depth-1, world)
             },
             None => {
