@@ -6,6 +6,7 @@ pub struct Camera {
     pub aspect_ratio: f32,          // Ratio of image width over height
     pub image_width: usize,         // Rendered image width in pixel count
     pub samples_per_pixel: usize,   // Count of random samples for each pixel
+    pub max_depth: isize,           // Maximum number of ray bounces into scene
     image_height: usize,            // Rendered image height
     center: Vec3,                   // Camera center
     pixel00_loc: Vec3,              // Location of pixel 0, 0
@@ -20,6 +21,7 @@ impl Camera {
             image_width: 100, 
             image_height: 100, 
             samples_per_pixel: 10,
+            max_depth: 10,
             center: Vec3::with_position(0.0, 0.0, 0.0), 
             pixel00_loc: Vec3::with_position(-0.09, 0.09, 1.0), 
             pixel_delta_u: Vec3::with_position(0.02, 0.0, 0.0) ,
@@ -40,7 +42,7 @@ impl Camera {
                 let mut c = Vec3::new();
                 for _ in 0..self.samples_per_pixel {
                     let r = self.get_ray(i, j);
-                    c = c + self.ray_color(&r, &world);
+                    c = c + self.ray_color(&r, self.max_depth, &world);
                 }
                 write!(f, "{}\n", c.write_color(self.samples_per_pixel)).unwrap();
             }
@@ -74,11 +76,14 @@ impl Camera {
         self.pixel00_loc = &viewport_upper_left + &(&self.pixel_delta_u + &self.pixel_delta_v) * 0.5;
     }
 
-    fn ray_color(&self, r: &Ray, world: &HitableList) -> Vec3 {
+    fn ray_color(&self, r: &Ray, depth: isize, world: &HitableList) -> Vec3 {
+        if depth <= 0 {
+            return Vec3::with_color(0.0, 0.0, 0.0)
+        }
         match world.hit(r, Interval::with_min_max(0.0, std::f32::INFINITY)) {
             Some(rec)=> {
                 let direction = Vec3::random_on_hemisphere(&rec.normal);
-                0.5 * self.ray_color(&Ray::new(&rec.p, &direction), world)
+                0.5 * self.ray_color(&Ray::new(&rec.p, &direction), depth-1, world)
             },
             None => {
                 let unit_direction = Vec3::unit_vector(&r.direction());
