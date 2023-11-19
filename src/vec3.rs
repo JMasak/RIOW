@@ -26,6 +26,38 @@ impl Vec3
         Self{ e: [x, y, z] }
     }
 
+    pub fn random() -> Self {
+        Self{ e: [rand::random(),rand::random(),rand::random()]}
+    }
+
+    pub fn random_with_limits(min: f32, max: f32) -> Self {
+        let delta = max-min;
+        Self{ e: [min + delta * rand::random::<f32>(),min + delta * rand::random::<f32>(),min + delta * rand::random::<f32>()]}
+    }
+
+    pub fn random_in_unit_sphere() -> Self {
+        loop {
+            let p = Vec3::random_with_limits(-1.0, 1.0);
+            if p.length_squared() < 1.0 {
+                return p
+            }
+        }
+    }
+
+    pub fn random_unit_vector() -> Self {
+        Vec3::unit_vector(&Vec3::random_in_unit_sphere())
+    }
+
+    pub fn random_on_hemisphere(normal: &Vec3) -> Self {
+        let on_unit_sphere = Vec3::random_unit_vector();
+        if Vec3::dot(&on_unit_sphere, normal) > 0.0 {
+            return on_unit_sphere
+        }
+        else {
+            return -on_unit_sphere
+        }
+    }
+
     pub fn x(&self) -> f32
     {
         self.e[0]

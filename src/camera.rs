@@ -77,7 +77,8 @@ impl Camera {
     fn ray_color(&self, r: &Ray, world: &HitableList) -> Vec3 {
         match world.hit(r, Interval::with_min_max(0.0, std::f32::INFINITY)) {
             Some(rec)=> {
-                0.5 * (rec.normal + Vec3::with_color(1.0, 1.0, 1.0))
+                let direction = Vec3::random_on_hemisphere(&rec.normal);
+                0.5 * self.ray_color(&Ray::new(&rec.p, &direction), world)
             },
             None => {
                 let unit_direction = Vec3::unit_vector(&r.direction());
